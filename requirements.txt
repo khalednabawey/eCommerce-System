@@ -1,0 +1,14 @@
+datasets
+evaluate
+huggingface_hub
+matplotlib
+numpy
+pandas
+seaborn
+torch
+transformers
+fastapi 
+uvicorn
+tqdm
+rouge_score
+nltk
