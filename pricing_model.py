@@ -1,4 +1,6 @@
 # Import Libraries
+import seaborn as sns
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import torch
@@ -9,8 +11,6 @@ from transformers import GPT2Config, GPT2Model
 from sklearn.model_selection import train_test_split
 import warnings
 warnings.filterwarnings('ignore')
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 
 def normalize_prices(prices, min_price=1e-8):
@@ -18,6 +18,8 @@ def normalize_prices(prices, min_price=1e-8):
     return np.clip(prices, min_price, None)
 
 # Model Architecture
+
+
 class GenAIPricingTransformer(nn.Module):
     def __init__(self, input_dim, n_heads=8, n_layers=6, dropout=0.1):
         super().__init__()
@@ -35,10 +37,10 @@ class GenAIPricingTransformer(nn.Module):
             attn_pdrop=dropout,
             scale_attn_weights=True
         )
-        
+
         self.feature_embedding = nn.Linear(input_dim, 256)
         self.transformer = GPT2Model(self.config)
-        
+
         self.price_head = nn.Sequential(
             nn.Linear(256, 128),
             nn.ReLU(),
@@ -48,13 +50,13 @@ class GenAIPricingTransformer(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(64, 1)
         )
-        
+
         self.market_head = nn.Sequential(
             nn.Linear(256, 64),
             nn.ReLU(),
             nn.Linear(64, 3)
         )
-        
+
         self.elasticity_head = nn.Sequential(
             nn.Linear(256, 64),
             nn.ReLU(),
@@ -64,12 +66,13 @@ class GenAIPricingTransformer(nn.Module):
 
     def forward(self, x):
         embedded = self.feature_embedding(x)
-        transformer_out = self.transformer(inputs_embeds=embedded.unsqueeze(1)).last_hidden_state
-        
+        transformer_out = self.transformer(
+            inputs_embeds=embedded.unsqueeze(1)).last_hidden_state
+
         price_pred = self.price_head(transformer_out.squeeze(1))
         market_pred = self.market_head(transformer_out.squeeze(1))
         elasticity_pred = self.elasticity_head(transformer_out.squeeze(1))
-        
+
         return price_pred, market_pred, elasticity_pred
 
 
@@ -79,7 +82,8 @@ class GenAIPricingStrategy:
         self.model = None
         self.scaler = StandardScaler()
         self.label_encoders = {}
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu')
         self.min_price = 1e-8
 
     def preprocess_features(self, df):
@@ -89,7 +93,8 @@ class GenAIPricingStrategy:
         price_columns = ['price', 'payment_value']
         for col in price_columns:
             if col in processed_df.columns:
-                processed_df[col] = normalize_prices(processed_df[col], self.min_price)
+                processed_df[col] = normalize_prices(
+                    processed_df[col], self.min_price)
 
         # Handle datetime features
         datetime_cols = ['order_purchase_timestamp', 'order_approved_at',
@@ -110,16 +115,20 @@ class GenAIPricingStrategy:
         )
 
         # Market features
-        processed_df['market_density'] = processed_df.groupby('product_category_name')['seller_id'].transform('nunique')
-        processed_df['category_demand'] = processed_df.groupby('product_category_name')['order_id'].transform('count')
+        processed_df['market_density'] = processed_df.groupby(
+            'product_category_name')['seller_id'].transform('nunique')
+        processed_df['category_demand'] = processed_df.groupby(
+            'product_category_name')['order_id'].transform('count')
 
         # Price features with numerical stability
         processed_df['price_per_weight'] = (
-            processed_df['price'] / processed_df['product_weight_g'].clip(lower=0.1)
+            processed_df['price'] /
+            processed_df['product_weight_g'].clip(lower=0.1)
         ).clip(lower=self.min_price)
 
         processed_df['price_per_volume'] = (
-            processed_df['price'] / processed_df['product_volume'].clip(lower=0.1)
+            processed_df['price'] /
+            processed_df['product_volume'].clip(lower=0.1)
         ).clip(lower=self.min_price)
 
         # Log transform price-related features
@@ -129,11 +138,13 @@ class GenAIPricingStrategy:
                 processed_df[f'{col}_log'] = np.log1p(processed_df[col])
 
         # Encode categorical variables
-        cat_columns = ['product_category_name', 'customer_state', 'seller_state']
+        cat_columns = ['product_category_name',
+                       'customer_state', 'seller_state']
         for col in cat_columns:
             if col in processed_df.columns:
                 le = LabelEncoder()
-                processed_df[col] = le.fit_transform(processed_df[col].astype(str))
+                processed_df[col] = le.fit_transform(
+                    processed_df[col].astype(str))
                 self.label_encoders[col] = le
 
         return processed_df
@@ -147,11 +158,13 @@ class GenAIPricingStrategy:
         ]
 
         # Check for missing columns
-        missing_columns = [col for col in feature_columns if col not in df.columns]
+        missing_columns = [
+            col for col in feature_columns if col not in df.columns]
         if missing_columns:
             print(f"Missing columns: {missing_columns}")
-        
-        available_columns = [col for col in feature_columns if col in df.columns]
+
+        available_columns = [
+            col for col in feature_columns if col in df.columns]
         X = df[available_columns].values
         X = np.nan_to_num(X, nan=0.0, posinf=1e6, neginf=-1e6)
         return X
@@ -159,9 +172,11 @@ class GenAIPricingStrategy:
     def load_model(self, input_dim):
         print(f"Loading model with input_dim: {input_dim}")
 
-        self.model = GenAIPricingTransformer(input_dim=input_dim).to(self.device)
+        self.model = GenAIPricingTransformer(
+            input_dim=input_dim).to(self.device)
         try:
-            state_dict = torch.load('artifacts/best_model.pth', map_location=self.device)
+            state_dict = torch.load(
+                'artifacts/best_model.pth', map_location=self.device)
             print("State dict loaded successfully. Keys: ", state_dict.keys())
             self.model.load_state_dict(state_dict)
             self.model.eval()
@@ -172,6 +187,3 @@ class GenAIPricingStrategy:
             print("Model file not found. Please ensure 'best_model.pth' exists.")
         except Exception as e:
             print(f"Unexpected error: {str(e)}")
-
-
-

@@ -3,12 +3,16 @@ import pandas as pd
 import requests
 from threading import Thread
 import torch
-from pricing_model import GenAIPricingStrategy  # Import your pricing strategy class
+# Import your pricing strategy class
+from pricing_model import GenAIPricingStrategy
 from chatbot_api import run_api  # Import your FastAPI function
 
 # Function to start the FastAPI server in a separate thread
+
+
 def start_api():
     run_api()
+
 
 # Start the FastAPI server in a new thread
 api_thread = Thread(target=start_api)
@@ -47,19 +51,23 @@ if page == "Pricing Strategy":
 
         # Get predictions for the first sample
         sample_features = X[0:1]  # Example: first product in dataset
-        sample_features_tensor = torch.tensor(sample_features, dtype=torch.float32).to(pricing_strategy.device)
+        sample_features_tensor = torch.tensor(
+            sample_features, dtype=torch.float32).to(pricing_strategy.device)
 
         # Get recommendations from the model
         recommendations = pricing_strategy.model(sample_features_tensor)
 
         # Extracting predictions
-        market_condition_tensor, price_elasticity_tensor, recommended_prices_tensor = recommendations  # Assuming the second tensor is not used
+        # Assuming the second tensor is not used
+        market_condition_tensor, price_elasticity_tensor, recommended_prices_tensor = recommendations
 
         # Handle market_condition tensor
-        market_condition = market_condition_tensor.item() if market_condition_tensor.numel() == 1 else market_condition_tensor.mean().item()
-        
+        market_condition = market_condition_tensor.item() if market_condition_tensor.numel(
+        ) == 1 else market_condition_tensor.mean().item()
+
         # Handle price_elasticity tensor
-        price_elasticity = price_elasticity_tensor.item() if price_elasticity_tensor.numel() == 1 else price_elasticity_tensor.mean().item()
+        price_elasticity = price_elasticity_tensor.item() if price_elasticity_tensor.numel(
+        ) == 1 else price_elasticity_tensor.mean().item()
 
         # Pricing Strategy Recommendations
         st.subheader("Pricing Strategy Recommendations")
@@ -67,15 +75,15 @@ if page == "Pricing Strategy":
         st.write(f"Price Elasticity: {price_elasticity:.2f}")
 
         # Handle recommended prices tensor
-        recommended_prices = [price.item() for price in recommended_prices_tensor]
+        recommended_prices = [price.item()
+                              for price in recommended_prices_tensor]
 
         # Display recommended prices
         st.subheader("Recommended Prices:")
         strategies = ['Strategy']  # Modify this list based on your strategies
         for strategy, price in zip(strategies, recommended_prices):
             st.write(f"{strategy}: ${price:.2f}")
-        
-        
+
 
 # Chatbot Page
 elif page == "Chatbot":
@@ -109,14 +117,10 @@ elif page == "Chatbot":
             # Parse the response from API
             if response.status_code == 200:
                 msg = response.json().get("response", "Sorry, I couldn't understand that.")
-                st.session_state.messages.append({"role": "assistant", "content": msg})
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": msg})
                 st.chat_message("assistant").write(msg)
             else:
                 st.error("Error: Unable to get a response from the API.")
         except Exception as e:
             st.error(f"Exception: {str(e)}. Could not connect to the API.")
-            
-            
-            
-
-
