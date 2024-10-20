@@ -8,10 +8,7 @@ Welcome to the Personalized Conversational eCommerce System, a Streamlit applica
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Requirements](#requirements)
-- [Future Improvements](#future-improvements)
-- [Contributing](#contributing)
-- [License](#license)
+
 
 ## Features
 
@@ -20,7 +17,9 @@ Welcome to the Personalized Conversational eCommerce System, a Streamlit applica
 - **User-Friendly Interface**: Built using Streamlit for an intuitive and responsive user experience.
 - **Data-Driven Insights**: Utilize historical data to enhance product recommendations and pricing strategies.
 
-![Streamlit App Screenshot](doc/st.png)
+![Streamlit Web Page for Pricing Strategy](doc/st.png)
+![Streamlit Web Page for Chatbot](doc/chat.png)
+
 
 ## Project Structure
 ```
