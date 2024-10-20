@@ -54,3 +54,27 @@ Welcome to the Personalized Conversational eCommerce System, a Streamlit applica
     └── streamlit_batch
 ```
 
+## Installation
+
+To run this application, ensure you have Python 3.8 or higher installed. Follow these steps to set up the project:
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository_url>
+   cd <repository_directory>
+
+2. Install the required packages:
+   
+```bash
+pip install -r requirements.txt
+```
+## Usage
+To run the Streamlit app, execute the following command in your terminal:
+```
+streamlit run app.py
+```
+Once the app is running, you can access it in your web browser at `http://localhost:8501`.
+
+
+
