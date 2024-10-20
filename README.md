@@ -23,6 +23,7 @@ Welcome to the Personalized Conversational eCommerce System, a Streamlit applica
 ![Streamlit App Screenshot](doc/st.png)
 
 ## Project Structure
+```
 .
 ├── app.py
 ├── artifacts
@@ -51,4 +52,5 @@ Welcome to the Personalized Conversational eCommerce System, a Streamlit applica
     ├── chatbot_app.py
     ├── model_test.py
     └── streamlit_batch
+```
 
