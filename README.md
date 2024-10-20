@@ -61,7 +61,7 @@ To run this application, ensure you have Python 3.8 or higher installed. Follow 
 
    ```bash
    git clone [<repository_url>](https://github.com/mariamahmed2/eCommerce-System)
-   cd eCommerce-System
+   cd eCommerce-System/
 
 2. Install the required packages:
    
