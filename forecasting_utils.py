@@ -110,18 +110,25 @@ def run_time_series_analysis(olist_df, seq_length=7, epochs=50, batch_size=32,
     return evaluation_results
 
 
-def predict_next_month(last_sequence, seq_length=7):
-    """Predicts the next 30 days using the last available sequence."""
-    all_predictions = []
+def predict_next_month(last_observed, lstm_model, seq_length=7):
+    # Create a zero array for the input shape
+    last_sequence = np.zeros((1, seq_length, 3))
+
+    # Fill the last values (assuming last_observed has the latest values)
+    for i in range(min(len(last_observed), seq_length)):
+        last_sequence[0, seq_length -
+                      len(last_observed) + i, :] = last_observed[i]
+
+    predictions = []
 
     for _ in range(30):  # Predict for the next 30 days
-        # Make a prediction
-        prediction = lstm_model.predict(
-            last_sequence[np.newaxis, ...])  # Add batch dimension
-        all_predictions.append(prediction)
+        pred = lstm_model.predict(last_sequence)
+        predictions.append(pred[0])  # Append the prediction for the day
 
-        # Update the last_sequence: remove the oldest observation and add the new prediction
-        last_sequence = np.append(last_sequence[1:], prediction, axis=0)
+        # Update last_sequence for the next prediction
+        last_sequence = np.roll(
+            last_sequence, -1, axis=1)  # Shift the sequence
+        # Update the last value with the new prediction
+        last_sequence[0, -1, :] = pred
 
-    # Convert predictions to a numpy array and return
-    return np.array(all_predictions)
+    return np.array(predictions)  # Return predictions for 30 days
